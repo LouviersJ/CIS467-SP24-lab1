@@ -36,7 +36,7 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.get("/tags", async (req, res) => {
+app.get("/api/v1/tags", async (req, res) => {
   try {
     const conn = await pool.getConnection();
     console.log(req.user);
@@ -52,7 +52,7 @@ app.get("/tags", async (req, res) => {
   }
 });
 
-app.get("/tags/:id", async (req, res) => {
+app.get("api/v1/tags/:id", async (req, res) => {
   try {
     const conn = await pool.getConnection();
     console.log(req.user);
@@ -75,7 +75,7 @@ app.get("/tags/:id", async (req, res) => {
 });
 
 // Create a new user
-app.post("/tags", async (req, res) => {
+app.post("/api/v1/tags", async (req, res) => {
   const { tagDescription } = req.body;
   try {
     const connection = await pool.getConnection();
@@ -92,4 +92,28 @@ app.post("/tags", async (req, res) => {
     console.error("Error creating user:", err);
     res.status(500).send("Error creating user");
   }
+});
+
+app.put("/api/v1/tags/:id", (req, res) => {
+  const tagID = req.params.id
+  const newTag = req.body
+
+  if (!tagID || !newTag) {
+    res.status(400).send("Invalid input data")
+  }
+
+  const sql = "UPDATE tags SET ? WHERE tagID = ?"
+  const values = [newTag, tagID];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Error editing tag:", err)
+      res.status(500).send("Database error")
+    }
+    if (result.affectedRows === 0) {
+      console.log("Tag not found")
+      res.status(404).send("Tag not found")
+    }
+    res.status(200).json(newTag);
+  });
 });
